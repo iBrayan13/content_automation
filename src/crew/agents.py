@@ -16,7 +16,7 @@ prompt_manager = get_prompt_manager()
 class ContentAgents:
 
     @staticmethod
-    def _agent(
+    def storyteller_agent(
         llm: BaseChatModel, tools: List[Any] = []
     ) -> Optional[Agent]:
         """
@@ -38,7 +38,36 @@ class ContentAgents:
         except Exception as ex:
             exception_traceback = traceback.format_exc()
             print(
-                f"StaticMethod: ContentAgents.analyzer_agent {type(ex)}:\n{exception_traceback}"
+                f"StaticMethod: ContentAgents.storyteller_agent {type(ex)}:\n{exception_traceback}"
+            )
+            return None
+
+        return Agent(**agent_prompt.get_agent_data(), tools=tools, llm=llm)
+    
+    @staticmethod
+    def image_generator_agent(
+        llm: BaseChatModel, tools: List[Any] = []
+    ) -> Optional[Agent]:
+        """
+        Creates an Agent instance with the specified LLM and tools.
+
+        Args:
+            llm (BaseChatModel): The language model to use for the agent.
+            tools (List[Any], optional): A list of tools to be used by the agent. Defaults to an empty list.
+
+        Returns:
+            Optional[Agent]: The created Agent instance, or None if an error occurred.
+        """
+        agent_name = inspect.currentframe().f_code.co_name
+
+        try:
+            agent_prompt = prompt_manager.get_prompt(agent_name)
+            if agent_prompt is None:
+                raise NameError(f"Agent '{agent_name}' not found in prompt_manager.")
+        except Exception as ex:
+            exception_traceback = traceback.format_exc()
+            print(
+                f"StaticMethod: ContentAgents.image_generator_agent {type(ex)}:\n{exception_traceback}"
             )
             return None
 
