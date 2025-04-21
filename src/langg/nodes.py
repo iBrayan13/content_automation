@@ -76,7 +76,7 @@ class Nodes:
     # @required_node()
     async def get_midjourney_prompts(self, state: ContentState):
 
-        midjourney_prompts = self.chain_prompt_manager.get_prompt_chain("get_story")
+        midjourney_prompts = self.chain_prompt_manager.get_prompt_chain("get_midjourney_prompts")
 
         midjourney_prompts_responses = await self.minimal_chainable.run(
             prompts=midjourney_prompts,
