@@ -16,8 +16,8 @@ class ChooseStory(BaseModel):
 class StoryContent(BaseModel):
     story_title: str
     story_category: str
-    story_content_english: str
-    story_content_spanish: str
+    story_content_english: str = Field(alias="story_content_en", description="This is the second story content in English. In Spanish the length is 160-220 words but in Englihs depends on the translation.")
+    story_content_spanish: str = Field(alias="story_content_es", description="This is the official (main) story content in Spanish between 160-220 words.")
     recommend_narrator_genre: str
 
 class MidjourneyPrompt(BaseModel):

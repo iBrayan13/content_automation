@@ -1,7 +1,7 @@
 {
   "prompts": [
     {
-      "prompt": "\n                Actúa cómo si fueras un escritor de videos para YouTube, escríbeme la historia de {{story_name}} de forma específica en 160 palabras.\n                Dame solo el texto del guion sin añadidos de más.\n                El guion debe de estar estructurado de la siguiente forma, dato curioso de la historia - desarrollo de la historia - final.\n                Recuerda respetar las reglas de lenguaje family friendly de tiktok.\n            ",
+      "prompt": "\n                Actï¿½a cï¿½mo si fueras un escritor de videos para YouTube, escrï¿½beme la historia de {{story_name}} de forma especï¿½fica entre 160 y 220 palabras.\n                Dame solo el texto del guion sin aï¿½adidos de mï¿½s.\n                El guion debe de estar estructurado de la siguiente forma, dato curioso de la historia - desarrollo de la historia - final.\n                Recuerda respetar las reglas de lenguaje family friendly de tiktok.\n            ",
       "content_keys": [],
       "return_model": null
     }
