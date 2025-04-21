@@ -92,6 +92,21 @@ class Nodes:
         state["midjourney_prompts"] = midjourney_prompts_responses[0].response.model_dump()["prompts"]
 
         return state
+    
+    def get_story_audio(self, state: ContentState):
+        logger.info("Generating audio")
+
+        voices = ["female", "male"]
+
+        audio = self.elevenlabs_service.get_speech_on_file(
+            filename=f"temp/{state['story_title']}.mp3",
+            text=state["story_content"],
+            voice=voices[random.randint(0, 1)]
+        )
+
+        state["audio_file"] = audio
+
+        return state
 
     def clean_up_node(self, state: ContentState):
         logger.info("Cleaning up")

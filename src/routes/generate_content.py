@@ -50,6 +50,7 @@ async def generate_content(body: GenerateInput):
         "data": {
             "story_title": output["story_title"],
             "story_content": output["story_content"],
-            "midjourney_prompts": output["midjourney_prompts"]
+            "midjourney_prompts": output["midjourney_prompts"],
+            "story_audio": output["audio_file"],
         }
     }

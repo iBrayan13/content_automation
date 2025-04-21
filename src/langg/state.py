@@ -5,3 +5,4 @@ class ContentState(TypedDict):
     story_title: str
     story_content: str
     midjourney_prompts: List[Dict[str, Any]]
+    audio_file: str
