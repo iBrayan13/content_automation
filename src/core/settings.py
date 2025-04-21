@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     ADMINISTRATOR_IDS: List[str]
     PROJECT_FLAG: str
 
+    ELEVENLABS_API_KEY: str
+
     OPENAI_API_KEY: str
     OPENAI_MODEL_NAME: str = "gpt-4o"
     ANTHROPIC_API_KEY: str
