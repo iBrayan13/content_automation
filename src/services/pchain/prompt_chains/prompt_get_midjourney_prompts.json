@@ -1,0 +1,9 @@
+{
+  "prompts": [
+    {
+      "prompt": "\n                Dame siete prompts para generar imágenes de la historia por cada una de las frases de la siguiente historia que te voy a mandar. Ten en cuenta que los prompts se estructuran así: personajes, descripción, época, vestimenta, lugar, acción, que se ve de fondo, tipo de plano, estilo.\n                En este caso el estilo siempre será: hyper-realistic, photo realism, cinematography.\n                Dame los prompts en inglés.\n                Dame los prompts con una frase entera, separando cada parte de la estructura con una \",\", sin lista de puntos, ni separándolos por su estructura.\n                Respeta las normas de defensa a comunidades de midjourney.\n\n                Este es el formato del prompt\n                Character: [personaje], Description: [descripción], Time Period: [tiempo o época], Location: [localización], Action: [acción], Background: [fondo}, Style: [estilo]\n\n\n                {{story}}\n            ",
+      "content_keys": [],
+      "return_model": null
+    }
+  ]
+}

@@ -37,7 +37,7 @@ class ChainPromptManager(BaseModel):
         }
 
         with open(file_path, "w") as f:
-            json.dump(data, f, indent=2)
+            json.dump(data, f, indent=2, ensure_ascii=False)
 
     def get_prompt_chain(self, name: str) -> list[ClientPrompt]:
         file_path = self._get_file_path(name, "prompt")
