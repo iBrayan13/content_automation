@@ -50,7 +50,7 @@ def required_node(tries=3):
                         exception_text=str(e),
                         end=True,
                     )
-            return {"end": notifier_and_define_end(exception, self.telegram_notifier)}
+            return {"end": notifier_and_define_end(exception)}
 
         return wrapper
 
@@ -76,7 +76,7 @@ def optional_node(tries=3):
                         exception_text=str(e),
                         end=False,
                     )
-            return {"end": notifier_and_define_end(exception, self.telegram_notifier)}
+            return {"end": notifier_and_define_end(exception)}
 
         return wrapper
 

@@ -17,4 +17,6 @@ class Settings(BaseSettings):
     DEEPSEEK_API_KEY: str
     DEEPSEEK_MODEL_NAME: str = "deepseek-chat"
 
+    MJ_INTERACTIVE_API: str
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
