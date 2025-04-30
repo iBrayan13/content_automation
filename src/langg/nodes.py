@@ -1,9 +1,9 @@
 import json
 import random
 import shutil
-import logging
 import requests
 from pathlib import Path
+from loguru import logger
 
 from src.core.settings import Settings
 from src.langg.state import ContentState
@@ -15,11 +15,11 @@ from src.services.pchain.chain_prompt_manager import ChainPromptManager
 from src.langg.models import (
     ExceptionDict,
     ChooseStory,
+    CheckStory,
     StoryContent,
     MidjourneyPrompts
 )
 
-logger = logging.getLogger(__name__)
 
 class Nodes:
     def __init__(
@@ -47,16 +47,53 @@ class Nodes:
         choose_story_responses = await self.minimal_chainable.run(
             prompts=choose_story_prompts,
             client="deepseek",
+            model="deepseek-reasoner",
             context={
                 "stories_done_list": state["stories_done"]
+            }
+        )
+
+        parse_story_prompts =  self.chain_prompt_manager.get_prompt_chain("parse_output")
+        parse_story_responses = await self.minimal_chainable.run(
+            prompts=parse_story_prompts,
+            client="deepseek",
+            model="deepseek-chat",
+            context={
+                "input_string": choose_story_responses[0].response,
+                "output_format": ChooseStory.model_json_schema()
             },
             returns_model={
                 0: ChooseStory
             }
         )
 
-        state["story_title"] = choose_story_responses[0].response.story_title
+        state["story_title"] = parse_story_responses[0].response.story_title
+        state["story_carpet_name"] = parse_story_responses[0].response.carpet_name
         logger.info(f"Story chosen: {state['story_title']}")
+        logger.info(f"Carpet name: {state['story_carpet_name']}")
+
+        return state
+    
+    async def check_story(self, state: ContentState):
+        logger.info("Checking story...")
+
+        check_story_prompts =  self.chain_prompt_manager.get_prompt_chain("check_story")
+
+        check_story_responses = await self.minimal_chainable.run(
+            prompts=check_story_prompts,
+            client="deepseek",
+            model="deepseek-chat",
+            context={
+                "story_title": state["story_title"],
+                "stories_done_list": state["stories_done"]
+            },
+            returns_model={
+                0: CheckStory
+            }
+        )
+
+        state["valid_story"] = not check_story_responses[0].response.is_story_done
+        logger.info(f"Is a valid story? {state['valid_story']}")
 
         return state
     
@@ -66,9 +103,9 @@ class Nodes:
         if not self.local_file_service.is_valid_path(state["main_path"]):
             raise Exception(f"Path {state['main_path']} does not exist")
         
-        folder_path = self.local_file_service.create_folder(state["main_path"], state["story_title"])
+        folder_path = self.local_file_service.create_folder(state["main_path"], state['story_carpet_name'])
         if folder_path is None:
-            raise Exception(f"Could not create folder {state['main_path']}/{state['story_title']}")
+            raise Exception(f"Could not create folder {state['main_path']}/{state['story_carpet_name']}")
         
         state["folder_path"] = folder_path
         logger.info(f"Folder created: {folder_path}")
@@ -83,6 +120,7 @@ class Nodes:
 
         story_content_responses = await self.minimal_chainable.run(
             prompts=story_content_prompts,
+            model="deepseek-chat",
             client="deepseek",
             context={
                 "story_name": state["story_title"]
@@ -105,6 +143,7 @@ class Nodes:
 
         midjourney_prompts_responses = await self.minimal_chainable.run(
             prompts=midjourney_prompts,
+            model="deepseek-chat",
             client="deepseek",
             context={
                 "story": state["story_content"]
@@ -147,7 +186,7 @@ class Nodes:
         voices = ["female", "male"]
 
         audio = self.elevenlabs_service.get_speech_on_file(
-            filename=f"temp/{state['story_title']}.mp3",
+            filename=f"temp/{state['story_carpet_name']}.mp3",
             text=state["story_content"],
             voice=voices[random.randint(0, 1)]
         )
@@ -157,7 +196,7 @@ class Nodes:
 
         return state
     
-    @optional_node()
+    @required_node()
     def create_json(self, state: ContentState):
         logger.info("Creating json")
 
@@ -169,7 +208,7 @@ class Nodes:
             "story_content": state["story_content"],
             "midjourney_prompts": state["midjourney_prompts"],
         }
-        with open(f"temp/story.json", "w") as f:
+        with open(f"temp/story.json", "w", encoding="utf-8") as f:
             json.dump(json_data, f, ensure_ascii=False)
 
         state["json_file"] = "/temp/story.json"

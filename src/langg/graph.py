@@ -1,7 +1,7 @@
 from langgraph.graph import END, StateGraph, graph
 
 from src.langg.nodes import Nodes
-
+from src.utils.graph import check_story_edge
 
 class WorkFlow:
     def __init__(self, nodes: Nodes, state_graph: StateGraph):
@@ -15,6 +15,7 @@ class WorkFlow:
 
         # NODES
         self.workflow_app.add_node("choose_story", self.nodes.choose_story)
+        self.workflow_app.add_node("check_story", self.nodes.check_story)
         self.workflow_app.add_node("verify_path_and_create_folder", self.nodes.verify_path_and_create_folder)
         self.workflow_app.add_node("get_story", self.nodes.get_story)
         self.workflow_app.add_node("get_midjourney_prompts", self.nodes.get_midjourney_prompts)
@@ -28,7 +29,16 @@ class WorkFlow:
         self.workflow_app.add_conditional_edges(
             "choose_story",
             lambda x: x.get("end", False),
-            {True: "clean_up_temp", False: "verify_path_and_create_folder"},
+            {True: "clean_up_temp", False: "check_story"},
+        )
+        self.workflow_app.add_conditional_edges(
+            "check_story",
+            check_story_edge,
+            {
+                "end": "clean_up_temp",
+                "retry_choose_story": "choose_story",
+                "verify_path_and_create_folder": "verify_path_and_create_folder"
+            },
         )
         self.workflow_app.add_conditional_edges(
             "verify_path_and_create_folder",

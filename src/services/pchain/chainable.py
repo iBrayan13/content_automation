@@ -31,6 +31,12 @@ class MinimalChainable:
             "deepseek": {"text"},
         }
 
+        self.model_supported_by_client = {
+            "openai": {"gpt-4o-minimum", "gpt-4o"},
+            "anthropic": {"claude-3-5-sonnet"},
+            "deepseek": {"deepseek-chat", "deepseek-reasoner"},
+        }
+
         self.openai_client = AsyncOpenAI(api_key=self.settings.OPENAI_API_KEY)
         self.anthropic_client = AsyncAnthropic(api_key=self.settings.ANTHROPIC_API_KEY)
         self.deepseek_client = AsyncOpenAI(api_key=self.settings.DEEPSEEK_API_KEY, base_url="https://api.deepseek.com")
@@ -120,7 +126,7 @@ class MinimalChainable:
         stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
     )
     async def _handle_anthropic_call(
-        self, prompt: ClientPrompt, context: dict[str, Any]
+        self, prompt: ClientPrompt, model: str, context: dict[str, Any]
     ) -> Response:
         try:
             content = self._prepare_content_for_anthropic(prompt, context)
@@ -128,7 +134,7 @@ class MinimalChainable:
             if prompt.return_model is not None:
                 llm = self._get_instructor(self.anthropic_client)
                 response = await llm.chat.completions.create(
-                    model=self.settings.ANTHROPIC_MODEL_NAME,
+                    model=model,
                     messages=[{"role": "user", "content": content}],
                     response_model=prompt.return_model,
                     max_tokens=4096,
@@ -137,7 +143,7 @@ class MinimalChainable:
 
             else:
                 message = await self.anthropic_client.messages.create(
-                    model=self.settings.ANTHROPIC_MODEL_NAME,
+                    model=model,
                     max_tokens=4096,
                     temperature=0,
                     messages=[{"role": "user", "content": content}],
@@ -157,7 +163,7 @@ class MinimalChainable:
         stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
     )
     async def _handle_openai_call(
-        self, prompt: ClientPrompt, context: dict[str, Any]
+        self, prompt: ClientPrompt, model: str, context: dict[str, Any]
     ) -> Response:
         try:
             message = self._prepare_content_for_openai(prompt, context)
@@ -165,7 +171,7 @@ class MinimalChainable:
             if prompt.return_model is not None:
                 llm = self._get_instructor(self.openai_client)
                 response_obj = await llm.chat.completions.create(
-                    model=self.settings.OPENAI_MODEL_NAME,
+                    model=model,
                     messages=[{"role": "user", "content": message}],
                     response_model=prompt.return_model,
                     temperature=0,
@@ -174,7 +180,7 @@ class MinimalChainable:
                 return Response(response=response_obj)
             else:
                 raw_response = await self.openai_client.chat.completions.create(
-                    model=self.settings.OPENAI_MODEL_NAME,
+                    model=model,
                     messages=[{"role": "user", "content": message}],
                     temperature=0,
                 )
@@ -190,7 +196,54 @@ class MinimalChainable:
     @retry(
         stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
     )
-    async def _handle_deepseek_call(
+    async def _handle_deepseek_reasoner_call(
+        self, prompt: ClientPrompt, context: dict[str, Any]
+    ) -> Response:
+        try:
+            message = self._prepare_content_for_deepseek(prompt, context)
+
+            if prompt.return_model is not None:
+                raise NotImplementedError("deepseek-reasoner does not support return_model yet")
+                # raw_response = await self.deepseek_client.chat.completions.create(
+                #     model="deepseek-reasoner",
+                #     messages=[
+                #         {
+                #             "role": "system", 
+                #             "content": f"Output your response as a valid JSON object that conforms to this schema: {json.dumps(prompt.return_model.model_json_schema())}"
+                #         },
+                #         {
+                #             "role": "user",
+                #             "content": message
+                #         }
+                #     ],
+                #     temperature=0,
+                #     response_format={
+                #         'type': 'json_object'
+                #     }
+                # )
+
+                # response = prompt.return_model.model_validate_json(raw_response.choices[0].message.content)
+
+                # return Response(response=response)
+            else:
+                raw_response = await self.deepseek_client.chat.completions.create(
+                    model="deepseek-reasoner",
+                    messages=[{"role": "user", "content": message}],
+                    temperature=0,
+                )
+
+                response = raw_response.choices[0].message.content
+
+                return Response(response=response)
+
+        except Exception as e:
+            logger.error(f"Error in DeepSeek API call: {str(e)}")
+            raise APICallError(f"Error in DeepSeek API call: {str(e)}") from e
+
+    @retry(
+        stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10)
+    )
+    async def _handle_deepseek_chat_call(
         self, prompt: ClientPrompt, context: dict[str, Any]
     ) -> Response:
         try:
@@ -199,7 +252,7 @@ class MinimalChainable:
             if prompt.return_model is not None:
                 llm = self._get_instructor(self.deepseek_client)
                 response_obj = await llm.chat.completions.create(
-                    model=self.settings.DEEPSEEK_MODEL_NAME,
+                    model="deepseek-chat",
                     messages=[{"role": "user", "content": message}],
                     response_model=prompt.return_model,
                     temperature=0,
@@ -208,7 +261,7 @@ class MinimalChainable:
                 return Response(response=response_obj)
             else:
                 raw_response = await self.deepseek_client.chat.completions.create(
-                    model=self.settings.DEEPSEEK_MODEL_NAME,
+                    model="deepseek-chat",
                     messages=[{"role": "user", "content": message}],
                     temperature=0,
                 )
@@ -224,21 +277,34 @@ class MinimalChainable:
     async def _handle_prompt(
         self,
         client: Literal['openai', 'anthropic', 'deepseek'],
+        model: str,
         prompt: ClientPrompt,
         context: dict[str, Any],
     ) -> Response:
+        if not model in self.model_supported_by_client[client]:
+            raise ValueError(f"Unsupported model type: {model}")
+
         if client == 'openai':
-            return await self._handle_openai_call(prompt, context)
+            return await self._handle_openai_call(prompt, model, context)
+        
         elif client == 'deepseek':
-            return await self._handle_deepseek_call(prompt, context)
+            if model == 'deepseek-chat':
+                return await self._handle_deepseek_chat_call(prompt, context)
+            if model == 'deepseek-reasoner':
+                return await self._handle_deepseek_reasoner_call(prompt, context)
+            else:
+                raise ValueError(f"Unsupported model type: {model}")
+            
         elif client == 'anthropic':
-            return await self._handle_anthropic_call(prompt, context)
+            return await self._handle_anthropic_call(prompt, model, context)
+        
         else:
             raise ValueError(f"Unsupported client type: {client}")
 
     async def run(
         self,
         client: Literal['openai', 'anthropic', 'deepseek'],
+        model: str,
         prompts: list[ClientPrompt],
         context: dict[str, Any] | None = None,
         returns_model: dict[int, type[BaseModel]] | None = None,
@@ -282,7 +348,7 @@ class MinimalChainable:
                     )
 
             try:
-                result = await self._handle_prompt(client, prompt, context)
+                result = await self._handle_prompt(client, model, prompt, context)
                 output.append(result)
             except APICallError as e:
                 logger.error(f"Error in API call: {str(e)}")

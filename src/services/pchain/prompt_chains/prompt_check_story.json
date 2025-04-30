@@ -1,0 +1,9 @@
+{
+  "prompts": [
+    {
+      "prompt": "\n                Is this story title on the list the stories done?\n                Story title: {{story_title}}\n\n                Stories done list: {{stories_done_list}}\n\n                Output expected:\n                (\n                    \"story_title\": string,\n                    \"is_story_done\": boolean,\n                    \"stories_done_list\": array[str]\n                )\n            ",
+      "content_keys": [],
+      "return_model": null
+    }
+  ]
+}

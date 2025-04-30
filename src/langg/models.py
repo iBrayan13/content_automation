@@ -12,6 +12,13 @@ class ChooseStory(BaseModel):
     reason: str
     story_category: str
     recommend_narrator_genre: str
+    carpet_name: str = Field(alias="carpet_name_es", description="This is the name of the carpet in Spanish, based on story_title use only three words.")
+
+class CheckStory(BaseModel):
+    story_title: str
+    is_story_done: bool
+    stories_done: list[str]
+
 
 class StoryContent(BaseModel):
     story_title: str

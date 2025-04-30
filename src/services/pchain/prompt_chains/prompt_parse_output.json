@@ -1,0 +1,9 @@
+{
+  "prompts": [
+    {
+      "prompt": "\n                I need you to parse the following input string:\n                Input: {{input_string}}\n\n                And return the following output:\n                Output format: {{output_format}}\n\n                Use only the information provided in the input string.\n            ",
+      "content_keys": [],
+      "return_model": null
+    }
+  ]
+}

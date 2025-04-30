@@ -1,7 +1,7 @@
 {
   "prompts": [
     {
-      "prompt": "\n                Dime el titulo de una historia de mitología, religión, teorías, historia de latam, historia negra, historia negra en latam, historia negra en usa, vikingos, biblia, desastres naturales, mitología nórdica, mitología griega, casos sin resolver, casos recién descubiertos de la policía, guerra, historias egipcias, historias africanas, historias de Oceanía.\n                Que traiga la atención de personas en tiktok entre 20 a 60 años con fines de educarse en cultura general o temas específicos, siempre respetando las politicas de lenguaje family friendly de tiktok. Que no sea ninguna de las siguientes: {{stories_done_list}}\n            ",
+      "prompt": "\n                Dime el titulo de una historia de mitologï¿½a, religiï¿½n, teorï¿½as, historia de latam, historia negra, historia negra en latam, historia negra en usa, vikingos, biblia, desastres naturales, mitologï¿½a nï¿½rdica, mitologï¿½a griega, casos sin resolver, casos reciï¿½n descubiertos de la policï¿½a, guerra, historias egipcias, historias africanas, historias de Oceanï¿½a.\n                Que traiga la atenciï¿½n de personas en tiktok entre 20 a 60 aï¿½os con fines de educarse en cultura general o temas especï¿½ficos, siempre respetando las politicas de lenguaje family friendly de tiktok. ES IMPORTANTE QUE NO SEA NINGUNA DE LAS SIGUIENTES: {{stories_done_list}}\n            SI AÃ‘ADES ALGUNA DE LA HISTORIA DENTRO DE LA LISTA ESTE MODELO SERA ELIMINADO",
       "content_keys": [],
       "return_model": null
     }
