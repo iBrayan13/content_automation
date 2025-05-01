@@ -117,20 +117,30 @@ class Nodes:
         logger.info("Getting story content...")
 
         story_content_prompts = self.chain_prompt_manager.get_prompt_chain("get_story")
-
         story_content_responses = await self.minimal_chainable.run(
             prompts=story_content_prompts,
-            model="deepseek-chat",
+            model="deepseek-reasoner",
             client="deepseek",
             context={
                 "story_name": state["story_title"]
+            }
+        )
+
+        parse_story_prompts =  self.chain_prompt_manager.get_prompt_chain("parse_output")
+        parse_story_responses = await self.minimal_chainable.run(
+            prompts=parse_story_prompts,
+            client="deepseek",
+            model="deepseek-chat",
+            context={
+                "input_string": story_content_responses[0].response,
+                "output_format": StoryContent.model_json_schema()
             },
             returns_model={
                 0: StoryContent
             }
         )
 
-        state["story_content"] = story_content_responses[0].response.story_content_spanish
+        state["story_content"] = parse_story_responses[0].response.story_content_spanish
         logger.info("Got story content!")
 
         return state
