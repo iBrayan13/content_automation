@@ -21,6 +21,7 @@ class WorkFlow:
         self.workflow_app.add_node("get_midjourney_prompts", self.nodes.get_midjourney_prompts)
         self.workflow_app.add_node("get_mj_images", self.nodes.get_mj_images)
         self.workflow_app.add_node("get_story_audio", self.nodes.get_story_audio)
+        self.workflow_app.add_node("get_subtitles", self.nodes.get_subtitles)
         self.workflow_app.add_node("create_json", self.nodes.create_json)
         self.workflow_app.add_node("move_files", self.nodes.move_files)
         self.workflow_app.add_node("clean_up_temp", self.nodes.clean_up_node)
@@ -62,6 +63,11 @@ class WorkFlow:
         )
         self.workflow_app.add_conditional_edges(
             "get_story_audio",
+            lambda x: x.get("end", False),
+            {True: "clean_up_temp", False: "get_subtitles"},
+        )
+        self.workflow_app.add_conditional_edges(
+            "get_subtitles",
             lambda x: x.get("end", False),
             {True: "clean_up_temp", False: "create_json"},
         )

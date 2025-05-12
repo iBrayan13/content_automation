@@ -11,6 +11,7 @@ from src.utils.nodes import required_node, optional_node
 from src.services.pchain.chainable import MinimalChainable
 from src.services.localfile_service import LocalFileService
 from src.services.elevenlabs_service import ElevenLabsService
+from src.services.subtitle_generator import SubtitleGenerator
 from src.services.pchain.chain_prompt_manager import ChainPromptManager
 from src.langg.models import (
     ExceptionDict,
@@ -28,12 +29,14 @@ class Nodes:
         chain_prompt_manager: ChainPromptManager,
         minimal_chainable: MinimalChainable,
         elevenlabs_service: ElevenLabsService,
+        subtitle_generator: SubtitleGenerator,
         local_file_service: LocalFileService,
     ) -> None:
         self.settings = settings
         self.chain_prompt_manager = chain_prompt_manager
         self.minimal_chainable = minimal_chainable
         self.elevenlabs_service = elevenlabs_service
+        self.subtitle_generator = subtitle_generator
         self.local_file_service = local_file_service
 
         self.mj_interactive_endpoint = f"{settings.MJ_INTERACTIVE_API}/generate_images"
@@ -203,6 +206,24 @@ class Nodes:
 
         state["audio_file"] = audio
         logger.info("Got story audio!")
+
+        return state
+    
+    @optional_node()
+    def get_subtitles(self, state: ContentState):
+        logger.info("Generating subtitles")
+
+        subtitles_file = self.subtitle_generator.get_subtitles(
+            audio_file=state["audio_file"],
+            str_name=state["story_carpet_name"],
+            segment_type="word"
+        )
+
+        if subtitles_file is None:
+            raise Exception("Could not generate subtitles")
+
+        state["subtitles_file"] = subtitles_file
+        logger.info("Got subtitles!")
 
         return state
     

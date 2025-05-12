@@ -1,4 +1,4 @@
-from typing_extensions import TypedDict, List, Dict, Any
+from typing_extensions import TypedDict, List, Dict, Any, Optional
 
 class ContentState(TypedDict):
     main_path: str
@@ -10,4 +10,5 @@ class ContentState(TypedDict):
     story_content: str
     midjourney_prompts: List[Dict[str, Any]]
     audio_file: str
+    subtitles_file: Optional[str] = None
     json_file: str
